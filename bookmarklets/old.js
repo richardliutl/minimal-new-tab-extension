@@ -1,0 +1,1 @@
+javascript:  u = location.href;  if (u.match('reddit.com')) {    if (u.match('www.reddit')) {      u = u.replace('www.reddit', 'old.reddit');    } else {      u = u.replace('old.reddit', 'www.reddit');    }    window.location = u;  } else {    alert('Not a Reddit URL.');  }
