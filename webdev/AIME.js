@@ -1,5 +1,14 @@
+{
 // # of tests to print
 const N = 4;
+const S = 15;
+const rounds = {
+  1: [1, 6, 15],
+  2: [2, 7, 14],
+  3: [3, 8, 13],
+  4: [4, 9, 12],
+  5: [5, 10, 11],
+}
 
 
 // Remove non-test elements
@@ -7,15 +16,12 @@ for (const p of document.querySelectorAll("p:has(a)")) {
   p.remove()
 }
 let h2s = document.querySelectorAll("h2:has(span)");
-for (const h2 of [...h2s].slice(0,15)) {
-  h2.insertAdjacentHTML("beforebegin", `<div style="break-after:page"></div>`);
-}
 try {
   while (true) {
-    h2s[h2s.length-1].nextSibling.remove();
+    h2s[S].nextSibling.remove();
   }
 } catch (e) {}
-h2s[h2s.length-1].remove();
+h2s[S].remove();
 
 try {
   while (true) {
@@ -24,34 +30,27 @@ try {
 } catch (e) {}
 
 
-// Annotate each test copy
+// Annotate test copies
+const pageBreak = `<div style="break-after:page"></div>`;
+const prbFromH2 = (h2, setTime=true, prev=1) => {
+  const time = (N, ix, prev) => (setTime && `(p${prev} time: ${N-ix})` || '');
+  return [...Array(N).keys()].map(ix => `
+<div style="display: flex; justify-content: space-between;">${h2.outerHTML}${time(N, ix, prev)}</div>
+${h2.nextElementSibling.outerHTML}
+`).join(pageBreak);
+}
+
+
+// Set question order
+h2s = document.querySelectorAll("h2:has(span)");
+const prbs = new Map([...h2s].map((h2, ix) => [ix+1, h2]));
+const ordered = Object.entries(rounds).map(x => {
+  return x[1].map((n, ix) => prbFromH2(prbs.get(n), ix, x[1][ix-1]))
+              .join(pageBreak);
+});
 let body = document.querySelector(".mw-body");
-const problemHTML = body.innerHTML;
-time(body, 1);
-
-for(let ix = 1; ix<N; ix++) {
-  body.insertAdjacentHTML("afterend", `
-<div style="break-after:page"></div>
-<div class="mw-body foo-${ix}">
-${problemHTML}
-</div>`);
-  body = document.querySelector(`.foo-${ix}`);
-  time(body, ix+1);
-}
-
-function time(body, t){
-  const h2s = body.querySelectorAll("h2:has(span)");
-  for (const h2 of h2s) {
-    var parent = h2.parentNode;
-    var wrapper = document.createElement('div');
-
-    parent.replaceChild(wrapper, h2);
-    wrapper.appendChild(h2);
-    
-    wrapper.innerHTML += `(time: ${t})`;
-    wrapper.style = "display: flex; justify-content: space-between;"
-  }
-}
+body.innerHTML = ordered.join(pageBreak);
 
 
 window.print()
+}
